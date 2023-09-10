@@ -6,20 +6,26 @@ import {
   RouterStateSnapshot,
   Router,
 } from '@angular/router';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LogGuard implements CanActivate {
-  constructor(private router: Router) {}
+  constructor(private authService: AuthService, private router: Router) {}
 
-  canActivate(): boolean {
-    if (localStorage.getItem('token')) {
-      // Token is already present, redirect to /home
+
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): boolean {
+    console.log(2);
+    if (this.authService.isLoggedIn()) {
+      // User is already authenticated, redirect to another page (e.g., home)
       this.router.navigate(['/home']);
-      return false;
+      return false; // Prevent access to the login page
     } else {
-      // Token is not present, allow access to /login
+      // User is not authenticated, allow access to the login page
       return true;
     }
   }

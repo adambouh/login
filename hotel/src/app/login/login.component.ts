@@ -2,12 +2,14 @@ import { Component } from '@angular/core';
 import { AuthService } from '../auth.service';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {FormsModule} from '@angular/forms';
+import { Document } from 'mongoose';
+
 
 @Component({
   selector: 'app-login',
@@ -23,12 +25,23 @@ import {FormsModule} from '@angular/forms';
 export class LoginComponent {
   username: string = '';
   password: string = '';
+  errorMessage: string = '';
 
   constructor(private authService: AuthService, private router: Router) {}
   applyForm = new FormGroup({
     username: new FormControl(''),
     password: new FormControl('')
   });
+  ngOnInit() {
+    // Check the resolved data to determine if the user is authenticated
+    const isAuthenticated = this.authService.isLoggedIn();
+console.log("a");
+    if (isAuthenticated) {
+      // User is already authenticated, redirect to another page
+      this.router.navigate(['/home']);
+    }
+  }
+
   onLogin() {
     this.username = this.applyForm.value.username ?? '';
     this.password = this.applyForm.value.password ?? '';
@@ -39,7 +52,7 @@ export class LoginComponent {
         console.log('Logged in successfully');
         
             // Login successful, store token in localStorage
-            localStorage.setItem('token', response.token);
+
             // Redirect to protected route or user profile
          
           
@@ -50,6 +63,8 @@ export class LoginComponent {
       (error) => {
         // Handle login failure, e.g., show an error message
         console.error('Login failed:', error);
+        this.errorMessage = 'Something is wrong with your login credentials.';
+
       }
     );
   }

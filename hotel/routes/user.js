@@ -20,9 +20,9 @@ router.post('/', async (req, res) => {
   }
 });
 
-/*
+
 // Get a list of all users
-router.get('/', (req, res) => {
+router.get('/all', (req, res) => {
   User.find({}, (err, users) => {
     if (err) {
       res.status(500).json(err);
@@ -30,43 +30,39 @@ router.get('/', (req, res) => {
       res.status(200).json(users);
     }
   });
-});*/
+});
  // Import your user model
 // Login route
 router.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    try {
-      // Find the user by username in the MongoDB database
-      const user = await User.findOne({ username });
-      console.log(username);
-      console.log(password);
+  const { username, password } = req.body;
+  try {
+    // Find the user by username in the MongoDB database
+    const user = await User.findOne({ username });
 
-      // If the user does not exist, return an error
-      if (!user) {
-        return res.status(401).json({ message: 'Authentication failed' });
-      }
-console.log(user.password + "   "+ password);
-      // Compare the submitted password with the hashed password from the database
-      const passwordsMatch = (password==user.password);
-      console.log(passwordsMatch);
-      if (passwordsMatch) {
-        // Passwords match, generate a JWT token
-        const token = jwt.sign({ userId: user._id, username: user.username }, 'hotel', {
-          expiresIn: '1d', // Token expiration time
-        });
-
-        return res.status(200).json({ token });
-      } else {
-        // Passwords do not match, return an error
-        return res.status(401).json({ message: 'Authentication failed' });
-      }
-    } catch (error) {
-      console.error('Error during login:', error);
-      return res.status(500).json({ message: 'Internal server error' });
+    // If the user does not exist, return an error
+    if (!user) {
+      return res.status(401).json({ message: 'Authentication failed' });
     }
-  });
-module.exports = router;
 
+    // Compare the submitted password with the hashed password from the database
+    const passwordsMatch = (password === user.password);
+    if (passwordsMatch) {
+      // Passwords match, create a session for the user
+      const token = jwt.sign({ userId: user._id, username: user.username }, 'your-secret-key', { expiresIn: '1h' });
+
+
+      return res.status(200).json({ message: 'Logged in successfully' ,token});
+    } else {
+      // Passwords do not match, return an error
+      return res.status(401).json({ message: 'Authentication failed' });
+    }
+  } catch (error) {
+    console.error('Error during login:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+module.exports = router;
   // Find a user by username
 router.get('/', async (req, res) => {
   const { username } = req.query;
@@ -114,6 +110,36 @@ router.delete('/:id', (req, res) => {
       }
     }
   });
+});
+router.get('/logout', (req, res) => {
+  // Destroy the session
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Error destroying session:', err);
+    }
+    // Redirect or respond as needed
+    res.redirect('/login');
+  });
+});
+//return profile from session
+router.get('/profile', async (req, res) => {
+  // Retrieve the user's ID from the session
+  const userId = req.session.userId;
+
+  try {
+    // Use the user's ID to fetch user data from your database
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Respond with user data
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 module.exports = router;

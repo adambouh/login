@@ -34,9 +34,13 @@
 						<span class="fa fa-lock"></span>
 						<input placeholder="Password" type="password"  id="password" name="password" formControlName="password" required>
 					</div>
+					<div *ngIf="errorMessage" class="alert-danger">
+						{{ errorMessage }}
+					  </div>
 					<div class="bottom">
 						<button class="btn">Log In</button>
 					</div>
+
 					<div class="links">
 						<p><a href="#">Forgot Password?</a></p>
 						<p class="right"><a href="#">New User? Register</a></p>
